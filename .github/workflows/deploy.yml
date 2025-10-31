@@ -26,10 +26,10 @@ jobs:
       - name: Build project
         run: pnpm run build
 
+      - name: List files after build
+        run: ls -laR
+
       - name: Deploy to GitHub Pages
         run: npx gh-pages -d dist -r https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
         env:
-          # O GITHUB_TOKEN é automaticamente fornecido pelo GitHub Actions
-          # e tem permissões para publicar no GitHub Pages.
-          # Não é necessário configurá-lo manualmente como um segredo.
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
