@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
-import { getComments } from '@/services/youtubeService';
+import { getComments, getVideoDetails } from '@/services/youtubeService';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Download } from 'lucide-react';
 
 interface Comment {
   id: string;
@@ -21,71 +18,113 @@ interface Comment {
 
 const YouTubeCommentScraper: React.FC = () => {
   const [videoId, setVideoId] = useState('');
-  const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
-  const [nextPageToken, setNextPageToken] = useState<string | undefined>(undefined);
+  const [downloadData, setDownloadData] = useState<{ filename: string; content: string } | null>(null);
   const { toast } = useToast();
 
-  const fetchComments = async (token?: string) => {
+  const fetchAllCommentsAndDetails = async () => {
     if (!videoId) {
       toast({
         title: "Error",
-        description: "Please enter a YouTube video ID.",
+        description: "Please enter a YouTube video ID or URL.",
         variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
+    setDownloadData(null); // Clear previous download data
+    let allComments: Comment[] = [];
+    let currentPageToken: string | undefined = undefined;
+    let videoTitle = "comments";
+    let videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
     try {
-      const { comments: newComments, nextPageToken: newNextPageToken } = await getComments(videoId, token);
-      setComments((prevComments) => token ? [...prevComments, ...newComments] : newComments);
-      setNextPageToken(newNextPageToken);
+      // Fetch video details first
+      const details = await getVideoDetails(videoId);
+      videoTitle = details.title;
+      videoUrl = details.url;
+
+      // Fetch all comments
+      do {
+        const { comments: newComments, nextPageToken: newNextPageToken } = await getComments(videoId, currentPageToken);
+        allComments = [...allComments, ...newComments];
+        currentPageToken = newNextPageToken;
+      } while (currentPageToken);
+
+      // Format comments for the .txt file
+      let fileContent = `Comments scraped from: ${videoUrl}\n\n`;
+      allComments.forEach((comment) => {
+        // Remove HTML tags from comment text
+        const cleanText = comment.textDisplay.replace(/<[^>]*>?/gm, '');
+        fileContent += `${comment.authorDisplayName}: ${cleanText}\n`;
+        if (comment.replies && comment.replies.length > 0) {
+          comment.replies.forEach((reply) => {
+            const cleanReplyText = reply.textDisplay.replace(/<[^>]*>?/gm, '');
+            fileContent += `  ${reply.authorDisplayName}: ${cleanReplyText}\n`; // Indent replies
+          });
+        }
+      });
+
+      setDownloadData({
+        filename: `${videoTitle.replace(/[^a-z0-9]/gi, '_')}_comments.txt`, // Sanitize filename
+        content: fileContent,
+      });
+
       toast({
         title: "Success",
-        description: `Fetched ${newComments.length} comments.`,
+        description: `Successfully scraped ${allComments.length} comments. Ready for download.`,
       });
+
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to fetch comments.",
+        description: error.message || "Failed to fetch comments or video details.",
         variant: "destructive",
       });
+      setDownloadData(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleScrape = () => {
-    setComments([]); // Clear previous comments
-    setNextPageToken(undefined); // Reset page token
-    fetchComments();
-  };
-
-  const handleLoadMore = () => {
-    if (nextPageToken) {
-      fetchComments(nextPageToken);
+  const handleDownload = () => {
+    if (downloadData) {
+      const blob = new Blob([downloadData.content], { type: 'text/plain;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = downloadData.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+      toast({
+        title: "Download Complete",
+        description: `"${downloadData.filename}" has been downloaded.`,
+      });
     }
   };
 
   const extractVideoId = (url: string) => {
-    const urlParams = new URLSearchParams(new URL(url).search);
-    return urlParams.get('v');
+    try {
+      const urlObj = new URL(url);
+      if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
+        if (urlObj.searchParams.has('v')) {
+          return urlObj.searchParams.get('v');
+        } else if (urlObj.hostname === 'youtu.be') {
+          return urlObj.pathname.substring(1);
+        }
+      }
+    } catch (e) {
+      // Not a valid URL, treat as ID
+    }
+    return url; // If not a URL, assume it's already an ID
   };
 
   const handleVideoIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    // Try to extract video ID if a full URL is pasted
-    if (value.includes('youtube.com/watch?v=')) {
-      const extractedId = extractVideoId(value);
-      if (extractedId) {
-        setVideoId(extractedId);
-      } else {
-        setVideoId(value); // Fallback if extraction fails
-      }
-    } else {
-      setVideoId(value);
-    }
+    const extractedId = extractVideoId(value);
+    setVideoId(extractedId || value);
   };
 
   return (
@@ -94,67 +133,28 @@ const YouTubeCommentScraper: React.FC = () => {
         <CardTitle className="text-2xl font-bold text-center">YouTube Comment Scraper</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex space-x-2 mb-4">
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-4">
           <Input
             placeholder="Enter YouTube Video ID or URL"
             value={videoId}
             onChange={handleVideoIdChange}
             className="flex-grow"
+            disabled={loading}
           />
-          <Button onClick={handleScrape} disabled={loading}>
+          <Button onClick={fetchAllCommentsAndDetails} disabled={loading}>
             {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Scrape Comments
+            Scrape & Prepare Download
           </Button>
         </div>
 
-        {comments.length > 0 && (
-          <ScrollArea className="h-[500px] w-full rounded-md border p-4">
-            <h3 className="text-lg font-semibold mb-2">Comments ({comments.length})</h3>
-            {comments.map((comment) => (
-              <div key={comment.id} className="mb-4 p-2 border-b last:border-b-0">
-                <div className="flex items-start space-x-3">
-                  <Avatar>
-                    <AvatarImage src={comment.authorProfileImageUrl} alt={comment.authorDisplayName} />
-                    <AvatarFallback>{comment.authorDisplayName.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <p className="font-semibold text-sm">{comment.authorDisplayName}</p>
-                    <p className="text-xs text-gray-500">{new Date(comment.publishedAt).toLocaleString()}</p>
-                    <p className="mt-1 text-sm" dangerouslySetInnerHTML={{ __html: comment.textDisplay }}></p>
-                    <p className="text-xs text-gray-400 mt-1">{comment.likeCount} likes</p>
-                  </div>
-                </div>
-                {comment.replies && comment.replies.length > 0 && (
-                  <div className="ml-10 mt-2 border-l pl-4">
-                    {comment.replies.map((reply) => (
-                      <div key={reply.id} className="mb-2 p-1">
-                        <div className="flex items-start space-x-3">
-                          <Avatar className="h-6 w-6">
-                            <AvatarImage src={reply.authorProfileImageUrl} alt={reply.authorDisplayName} />
-                            <AvatarFallback className="text-xs">{reply.authorDisplayName.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <p className="font-semibold text-xs">{reply.authorDisplayName}</p>
-                            <p className="text-xs text-gray-500">{new Date(reply.publishedAt).toLocaleString()}</p>
-                            <p className="mt-1 text-sm" dangerouslySetInnerHTML={{ __html: reply.textDisplay }}></p>
-                            <p className="text-xs text-gray-400 mt-1">{reply.likeCount} likes</p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-            {nextPageToken && (
-              <div className="text-center mt-4">
-                <Button onClick={handleLoadMore} disabled={loading} variant="outline">
-                  {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Load More Comments
-                </Button>
-              </div>
-            )}
-          </ScrollArea>
+        {downloadData && (
+          <div className="text-center mt-4">
+            <Button onClick={handleDownload} disabled={loading} className="bg-green-600 hover:bg-green-700 text-white">
+              <Download className="mr-2 h-4 w-4" />
+              Download Comments File
+            </Button>
+            <p className="text-sm text-gray-500 mt-2">File ready: {downloadData.filename}</p>
+          </div>
         )}
       </CardContent>
     </Card>
