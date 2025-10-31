@@ -35,7 +35,7 @@ const YouTubeCommentScraper: React.FC = () => {
   const cleanFileName = (title: string): string => {
     // Remove diacritics (accents)
     const withoutDiacritics = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    // Replace any non-alphanumeric characters (except underscores) with an underscore
+    // Replace any non-alphanumeric characters (exceto underscores) with an underscore
     // and convert to lowercase
     return withoutDiacritics.replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
   };
@@ -193,9 +193,8 @@ const YouTubeCommentScraper: React.FC = () => {
                 <p>
                   Para encontrar ou criar sua chave API, visite o
                   <a
-                    href="https://console.cloud.google.com/apis/credentials"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href="#"
+                    onClick={() => window.open("https://console.cloud.google.com/apis/credentials", "_blank")}
                     className="text-blue-600 dark:text-blue-400 underline ml-1"
                   >
                     Google Cloud Console
@@ -208,9 +207,8 @@ const YouTubeCommentScraper: React.FC = () => {
                 <p>
                   Se você não sabe como criar uma chave API, assista a este
                   <a
-                    href="https://youtu.be/SXJINT_6GBU"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href="#"
+                    onClick={() => window.open("https://youtu.be/SXJINT_6GBU", "_blank")}
                     className="text-blue-600 dark:text-blue-400 underline ml-1"
                   >
                     vídeo
