@@ -27,7 +27,7 @@ jobs:
         run: pnpm run build
 
       - name: Deploy to GitHub Pages
-        run: pnpm run deploy
+        run: npx gh-pages -d dist -r https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
         env:
           # O GITHUB_TOKEN é automaticamente fornecido pelo GitHub Actions
           # e tem permissões para publicar no GitHub Pages.
