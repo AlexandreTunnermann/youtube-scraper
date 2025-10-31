@@ -1,0 +1,32 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main # Altere para 'master' se essa for sua branch principal
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Use a versão do Node.js que você está usando localmente
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+          run_install: true
+
+      - name: Deploy to GitHub Pages
+        run: pnpm run deploy
+        env:
+          # O GITHUB_TOKEN é automaticamente fornecido pelo GitHub Actions
+          # e tem permissões para publicar no GitHub Pages.
+          # Não é necessário configurá-lo manualmente como um segredo.
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
