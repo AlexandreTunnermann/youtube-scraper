@@ -16,6 +16,7 @@ export interface Comment {
 export interface VideoDetails {
   title: string;
   url: string;
+  description: string; // Added description
 }
 
 export const getComments = async (videoId: string, pageToken?: string): Promise<{ comments: Comment[]; nextPageToken?: string }> => {
@@ -93,6 +94,7 @@ export const getVideoDetails = async (videoId: string): Promise<VideoDetails> =>
     return {
       title: snippet.title,
       url: videoUrl,
+      description: snippet.description, // Include description
     };
   } catch (error) {
     console.error("Error fetching video details:", error);

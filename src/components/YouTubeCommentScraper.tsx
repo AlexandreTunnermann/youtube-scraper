@@ -47,12 +47,14 @@ const YouTubeCommentScraper: React.FC = () => {
     let currentPageToken: string | undefined = undefined;
     let videoTitle = "comments";
     let videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    let videoDescription = "";
 
     try {
       // Fetch video details first
       const details = await getVideoDetails(videoId);
       videoTitle = details.title;
       videoUrl = details.url;
+      videoDescription = details.description;
 
       // Fetch all comments
       do {
@@ -62,7 +64,11 @@ const YouTubeCommentScraper: React.FC = () => {
       } while (currentPageToken);
 
       // Format comments for the .txt file
-      let fileContent = `Comments scraped from: ${videoUrl}\n\n`;
+      let fileContent = `${videoTitle}\n\n`; // Video Title
+      fileContent += `${videoDescription}\n\n`; // Video Description
+      fileContent += `Comments scraped from: ${videoUrl}\n\n`; // Scraped from URL
+      fileContent += `-------------------------------------------------------\n\n`; // Separator line
+
       allComments.forEach((comment) => {
         // Remove HTML tags from comment text
         const cleanText = comment.textDisplay.replace(/<[^>]*>?/gm, '');
