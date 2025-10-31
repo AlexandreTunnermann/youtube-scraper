@@ -17,6 +17,7 @@ interface Comment {
 }
 
 const YouTubeCommentScraper: React.FC = () => {
+  const [youtubeApiKey, setYoutubeApiKey] = useState('');
   const [videoId, setVideoId] = useState('');
   const [loading, setLoading] = useState(false);
   const [downloadData, setDownloadData] = useState<{ filename: string; content: string } | null>(null);
@@ -32,6 +33,15 @@ const YouTubeCommentScraper: React.FC = () => {
   };
 
   const fetchAllCommentsAndDetails = async () => {
+    if (!youtubeApiKey) {
+      toast({
+        title: "Error",
+        description: "Please enter your YouTube API Key.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!videoId) {
       toast({
         title: "Error",
@@ -51,14 +61,14 @@ const YouTubeCommentScraper: React.FC = () => {
 
     try {
       // Fetch video details first
-      const details = await getVideoDetails(videoId);
+      const details = await getVideoDetails(youtubeApiKey, videoId);
       videoTitle = details.title;
       videoUrl = details.url;
       videoDescription = details.description;
 
       // Fetch all comments
       do {
-        const { comments: newComments, nextPageToken: newNextPageToken } = await getComments(videoId, currentPageToken);
+        const { comments: newComments, nextPageToken: newNextPageToken } = await getComments(youtubeApiKey, videoId, currentPageToken);
         allComments = [...allComments, ...newComments];
         currentPageToken = newNextPageToken;
       } while (currentPageToken);
@@ -148,23 +158,31 @@ const YouTubeCommentScraper: React.FC = () => {
         <CardTitle className="text-2xl font-bold text-center">YouTube Comment Scraper</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 mb-4">
+        <div className="flex flex-col space-y-2 mb-4">
+          <Input
+            placeholder="Enter your YouTube API Key"
+            type="password" // Use password type for security
+            value={youtubeApiKey}
+            onChange={(e) => setYoutubeApiKey(e.target.value)}
+            className="w-full"
+            disabled={loading}
+          />
           <Input
             placeholder="Enter YouTube Video ID or URL"
             value={videoId}
             onChange={handleVideoIdChange}
-            className="flex-grow"
+            className="w-full"
             disabled={loading}
           />
-          <Button onClick={fetchAllCommentsAndDetails} disabled={loading}>
-            {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Scrape & Prepare Download
-          </Button>
         </div>
+        <Button onClick={fetchAllCommentsAndDetails} disabled={loading} className="w-full">
+          {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+          Scrape & Prepare Download
+        </Button>
 
         {downloadData && (
           <div className="text-center mt-4">
-            <Button onClick={handleDownload} disabled={loading} className="bg-green-600 hover:bg-green-700 text-white">
+            <Button onClick={handleDownload} disabled={loading} className="bg-green-600 hover:bg-green-700 text-white w-full">
               <Download className="mr-2 h-4 w-4" />
               Download Comments File
             </Button>

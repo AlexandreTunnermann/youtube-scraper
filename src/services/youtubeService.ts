@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-const API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
 
 export interface Comment {
@@ -16,18 +15,18 @@ export interface Comment {
 export interface VideoDetails {
   title: string;
   url: string;
-  description: string; // Added description
+  description: string;
 }
 
-export const getComments = async (videoId: string, pageToken?: string): Promise<{ comments: Comment[]; nextPageToken?: string }> => {
-  if (!API_KEY) {
-    throw new Error("YouTube API Key is not set. Please add VITE_YOUTUBE_API_KEY to your .env file.");
+export const getComments = async (apiKey: string, videoId: string, pageToken?: string): Promise<{ comments: Comment[]; nextPageToken?: string }> => {
+  if (!apiKey) {
+    throw new Error("YouTube API Key is not provided. Please enter it in the field above.");
   }
 
   try {
     const response = await axios.get(`${BASE_URL}/commentThreads`, {
       params: {
-        key: API_KEY,
+        key: apiKey,
         videoId: videoId,
         part: 'snippet,replies',
         maxResults: 100, // Maximum results per page
@@ -70,15 +69,15 @@ export const getComments = async (videoId: string, pageToken?: string): Promise<
   }
 };
 
-export const getVideoDetails = async (videoId: string): Promise<VideoDetails> => {
-  if (!API_KEY) {
-    throw new Error("YouTube API Key is not set. Please add VITE_YOUTUBE_API_KEY to your .env file.");
+export const getVideoDetails = async (apiKey: string, videoId: string): Promise<VideoDetails> => {
+  if (!apiKey) {
+    throw new Error("YouTube API Key is not provided. Please enter it in the field above.");
   }
 
   try {
     const response = await axios.get(`${BASE_URL}/videos`, {
       params: {
-        key: API_KEY,
+        key: apiKey,
         id: videoId,
         part: 'snippet',
       },
@@ -94,7 +93,7 @@ export const getVideoDetails = async (videoId: string): Promise<VideoDetails> =>
     return {
       title: snippet.title,
       url: videoUrl,
-      description: snippet.description, // Include description
+      description: snippet.description,
     };
   } catch (error) {
     console.error("Error fetching video details:", error);
