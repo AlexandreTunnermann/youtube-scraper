@@ -3,7 +3,7 @@ import axios from 'axios';
 const API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
 const BASE_URL = 'https://www.googleapis.com/youtube/v3';
 
-interface Comment {
+export interface Comment {
   id: string;
   authorDisplayName: string;
   authorProfileImageUrl: string;
@@ -13,33 +13,9 @@ interface Comment {
   replies?: Comment[];
 }
 
-interface CommentThread {
-  id: string;
-  snippet: {
-    topLevelComment: {
-      id: string;
-      snippet: {
-        authorDisplayName: string;
-        authorProfileImageUrl: string;
-        textDisplay: string;
-        publishedAt: string;
-        likeCount: number;
-      };
-    };
-    totalReplyCount: number;
-  };
-  replies?: {
-    comments: Array<{
-      id: string;
-      snippet: {
-        authorDisplayName: string;
-        authorProfileImageUrl: string;
-        textDisplay: string;
-        publishedAt: string;
-        likeCount: number;
-      };
-    }>;
-  };
+export interface VideoDetails {
+  title: string;
+  url: string;
 }
 
 export const getComments = async (videoId: string, pageToken?: string): Promise<{ comments: Comment[]; nextPageToken?: string }> => {
@@ -89,6 +65,37 @@ export const getComments = async (videoId: string, pageToken?: string): Promise<
     };
   } catch (error) {
     console.error("Error fetching comments:", error);
+    throw error;
+  }
+};
+
+export const getVideoDetails = async (videoId: string): Promise<VideoDetails> => {
+  if (!API_KEY) {
+    throw new Error("YouTube API Key is not set. Please add VITE_YOUTUBE_API_KEY to your .env file.");
+  }
+
+  try {
+    const response = await axios.get(`${BASE_URL}/videos`, {
+      params: {
+        key: API_KEY,
+        id: videoId,
+        part: 'snippet',
+      },
+    });
+
+    if (response.data.items.length === 0) {
+      throw new Error("Video not found or invalid video ID.");
+    }
+
+    const snippet = response.data.items[0].snippet;
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+    return {
+      title: snippet.title,
+      url: videoUrl,
+    };
+  } catch (error) {
+    console.error("Error fetching video details:", error);
     throw error;
   }
 };
