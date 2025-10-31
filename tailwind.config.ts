@@ -62,6 +62,7 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        'neon-green': 'hsl(145 63% 42%)', // Uma cor verde vibrante para o brilho
       },
       borderRadius: {
         lg: "var(--radius)",

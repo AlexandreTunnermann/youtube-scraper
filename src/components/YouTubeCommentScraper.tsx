@@ -193,10 +193,36 @@ const YouTubeCommentScraper: React.FC = () => {
     setVideoId(extractedId || value);
   };
 
+  const getCardTitle = (mode: ScrapeMode) => {
+    switch (mode) {
+      case 'comments':
+        return 'Extrator de Comentários do YouTube';
+      case 'transcription':
+        return 'Extrator de Transcrição do YouTube';
+      case 'both':
+        return 'Extrator de Comentários e Transcrição do YouTube';
+      default:
+        return 'Extrator de Conteúdo do YouTube';
+    }
+  };
+
+  const getButtonText = (mode: ScrapeMode) => {
+    switch (mode) {
+      case 'comments':
+        return 'Extrair Comentários';
+      case 'transcription':
+        return 'Extrair Transcrição';
+      case 'both':
+        return 'Extrair Comentários e Transcrição';
+      default:
+        return 'Extrair e Preparar Download';
+    }
+  };
+
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center">Extrator de Conteúdo do YouTube</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center">{getCardTitle(scrapeMode)}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex justify-center space-x-2 mb-4">
@@ -300,9 +326,16 @@ const YouTubeCommentScraper: React.FC = () => {
             disabled={loading}
           />
         </div>
-        <Button onClick={fetchAndPrepareDownloads} disabled={loading} className="w-full">
+        <Button
+          onClick={fetchAndPrepareDownloads}
+          disabled={loading}
+          className={cn(
+            "w-full transition-all duration-300",
+            !loading && "bg-neon-green hover:bg-neon-green/90 text-white green-neon-border-glow"
+          )}
+        >
           {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-          Extrair e Preparar Download
+          {getButtonText(scrapeMode)}
         </Button>
 
         {downloadFiles && downloadFiles.length > 0 && (

@@ -100,7 +100,7 @@
   }
 }
 
-/* Custom CSS para o efeito neon */
+/* Custom CSS para o efeito neon azul */
 @keyframes neon-glow {
   0% {
     box-shadow: 0 0 5px hsl(217.2 91.2% 59.8%), 0 0 10px hsl(217.2 91.2% 59.8%), 0 0 15px hsl(217.2 91.2% 59.8%);
@@ -116,4 +116,22 @@
 .neon-border-glow {
   animation: neon-glow 1.5s ease-in-out infinite alternate;
   border: 2px solid hsl(217.2 91.2% 59.8%); /* Usando um azul da cor primária do shadcn */
+}
+
+/* Custom CSS para o efeito neon verde */
+@keyframes green-neon-glow {
+  0% {
+    box-shadow: 0 0 5px hsl(145 63% 42%), 0 0 10px hsl(145 63% 42%), 0 0 15px hsl(145 63% 42%);
+  }
+  50% {
+    box-shadow: 0 0 10px hsl(145 63% 42%), 0 0 20px hsl(145 63% 42%), 0 0 30px hsl(145 63% 42%);
+  }
+  100% {
+    box-shadow: 0 0 5px hsl(145 63% 42%), 0 0 10px hsl(145 63% 42%), 0 0 15px hsl(145 63% 42%);
+  }
+}
+
+.green-neon-border-glow {
+  animation: green-neon-glow 1.5s ease-in-out infinite alternate;
+  border: 2px solid hsl(145 63% 42%); /* Um verde vibrante para o brilho */
 }
