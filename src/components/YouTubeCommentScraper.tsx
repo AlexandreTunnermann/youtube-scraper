@@ -22,6 +22,15 @@ const YouTubeCommentScraper: React.FC = () => {
   const [downloadData, setDownloadData] = useState<{ filename: string; content: string } | null>(null);
   const { toast } = useToast();
 
+  // Helper function to clean the filename
+  const cleanFileName = (title: string): string => {
+    // Remove diacritics (accents)
+    const withoutDiacritics = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    // Replace any non-alphanumeric characters (except underscores) with an underscore
+    // and convert to lowercase
+    return withoutDiacritics.replace(/[^a-zA-Z0-9_]/g, '_').toLowerCase();
+  };
+
   const fetchAllCommentsAndDetails = async () => {
     if (!videoId) {
       toast({
@@ -67,7 +76,7 @@ const YouTubeCommentScraper: React.FC = () => {
       });
 
       setDownloadData({
-        filename: `${videoTitle.replace(/[^a-z0-9]/gi, '_')}_comments.txt`, // Sanitize filename
+        filename: `${cleanFileName(videoTitle)}_comments.txt`, // Use the new cleanFileName function
         content: fileContent,
       });
 
