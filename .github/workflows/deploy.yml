@@ -23,6 +23,9 @@ jobs:
           version: 8
           run_install: true
 
+      - name: Build project
+        run: pnpm run build
+
       - name: Deploy to GitHub Pages
         run: pnpm run deploy
         env:
