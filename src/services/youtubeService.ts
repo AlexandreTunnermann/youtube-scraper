@@ -100,3 +100,18 @@ export const getVideoDetails = async (apiKey: string, videoId: string): Promise<
     throw error;
   }
 };
+
+// Placeholder para o serviço de transcrição
+export const getTranscription = async (videoId: string): Promise<string> => {
+  // Em uma aplicação real, isso envolveria um processo mais complexo:
+  // 1. Usar uma API de terceiros (ex: Google Cloud Speech-to-Text, ou uma API dedicada de transcrição do YouTube).
+  // 2. Fazer scraping dos dados de legendas do YouTube (o que pode ser complexo e propenso a quebras).
+  // A API do YouTube Data v3 não fornece diretamente transcrições de vídeo.
+  console.warn("A funcionalidade de transcrição é um placeholder. A API do YouTube Data v3 não fornece transcrições diretamente.");
+  return `Esta é uma transcrição de exemplo para o vídeo ${videoId}.
+  
+  [00:00:05] Olá a todos! Bem-vindos ao meu canal.
+  [00:00:10] Hoje vamos falar sobre um tópico muito interessante.
+  [00:00:15] Espero que gostem do conteúdo.
+  [00:00:20] Não se esqueçam de deixar um like e se inscrever!`;
+};

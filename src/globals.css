@@ -99,3 +99,21 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom CSS para o efeito neon */
+@keyframes neon-glow {
+  0% {
+    box-shadow: 0 0 5px hsl(217.2 91.2% 59.8%), 0 0 10px hsl(217.2 91.2% 59.8%), 0 0 15px hsl(217.2 91.2% 59.8%);
+  }
+  50% {
+    box-shadow: 0 0 10px hsl(217.2 91.2% 59.8%), 0 0 20px hsl(217.2 91.2% 59.8%), 0 0 30px hsl(217.2 91.2% 59.8%);
+  }
+  100% {
+    box-shadow: 0 0 5px hsl(217.2 91.2% 59.8%), 0 0 10px hsl(217.2 91.2% 59.8%), 0 0 15px hsl(217.2 91.2% 59.8%);
+  }
+}
+
+.neon-border-glow {
+  animation: neon-glow 1.5s ease-in-out infinite alternate;
+  border: 2px solid hsl(217.2 91.2% 59.8%); /* Usando um azul da cor primária do shadcn */
+}
