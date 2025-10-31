@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "http://<USERNAME>.github.io/<REPO_NAME>",
+  "homepage": "https://alexandretunnermann.github.io/youtube-scraper/",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
